@@ -1,9 +1,12 @@
 // BUILD YOUR SERVER HERE
 const express = require('express');
 const Data = require('./users/model');
+const cors = require('cors');
+
 
 const server = express();
 server.use(express.json())
+server.use(cors())
 
 server.get('/hello-world', (req, res) => {
     res.status(200).json({message: 'Hello World!!!'})
@@ -53,7 +56,7 @@ server.post('/api/users', async (req, res) => {
                 res.status(201).json(user)
             })
             .catch(err => {
-                res.status(400).json({
+                res.status(500).json({
                     message: 'could not create new user'
                 })
             })
@@ -71,17 +74,20 @@ server.delete('/api/users/:id', async (req, res) => {
                 res.status(200).json(user)
             }
         })
+        .catch(err => {
+            res.status(500).json({message: 'The user could not be removed'})
+        })
 })
 server.put('/api/users/:id', async (req , res) => {
     const { id } = req.params;
     const updatedUser = req.body
     if(!updatedUser.name || !updatedUser.bio) {
-        res.status(400).json({message: 'provide name and bio'})
+        res.status(400).json({message: 'Please provide name and bio for the user'})
     } else {
         Data.update(id, updatedUser)
             .then(user => {
                 if(!user) {
-                    res.status(404).json({message: 'does not exist'})
+                    res.status(404).json({message: 'The user with the specified ID does not exist'})
                 } else {
                     const newUser = {
                         bio: updatedUser.bio,
@@ -91,7 +97,9 @@ server.put('/api/users/:id', async (req , res) => {
                     console.log(newUser)
                     res.status(200).json(newUser)
                 }
-                
+            })
+            .catch(err => {
+                res.status(500).json({message: 'The user information could not be modified'})
             })
         
     }
